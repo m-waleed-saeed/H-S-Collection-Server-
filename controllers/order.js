@@ -34,7 +34,6 @@ const getOrderById = async (req, res) => {
         if (!order) {
             return res.status(404).json({ success: false, message: "Order not found" });
         }
-
         const formattedOrder = { ...order._doc, customerName: order.user ? order.user.name : order.shippingAddress.name, customerEmail: order.user ? order.user.email : order.shippingAddress.email, };
         res.status(200).json({ success: true, order: formattedOrder });
     } catch (error) {
@@ -76,3 +75,4 @@ const deleteOrder = async (req, res) => {
 };
 
 module.exports = { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, };
+
