@@ -18,11 +18,20 @@ const subscriberRoutes = require('./routes/subscriber')
 const app = express();
 
 app.use(express.json());
-app.use(cors({
-  origin: ["https://www.handscollection.com"], // your frontend domain
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true,
-}));
+
+app.use(
+  cors({
+    origin: [
+      "https://www.handscollection.com",
+      "https://handscollection.com",
+      "handscollection.com",
+      "http://localhost:3000",],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+app.options("*", cors());
+
 // Model to avoid "Schema hasn't been registered for model" error
 require("./models/category");
 
