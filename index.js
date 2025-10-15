@@ -18,16 +18,25 @@ const subscriberRoutes = require('./routes/subscriber')
 
 const app = express();
 
-app.use(express.json());
+const allowedOrigins = [
+  "https://www.handscollection.com",
+  "http://localhost:8000", // for local dev
+];
 
 app.use(
   cors({
-    origin: ["https://handscollection.com", "https://www.handscollection.com"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
-app.options("*", cors());
+
+app.use(express.json());
 
 // Model to avoid "Schema hasn't been registered for model" error
 require("./models/category");
