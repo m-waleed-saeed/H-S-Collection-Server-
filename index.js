@@ -1,7 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 dotenv.config();
-// const cors = require('cors');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const colors = require('colors');
 const connectDB = require('./config/db');
@@ -19,19 +19,19 @@ const subscriberRoutes = require('./routes/subscriber')
 const app = express();
 
 app.use(express.json());
-app.use(bodyParser())
-// app.use(
-//   cors({
-//     origin: [
-//       "https://www.handscollection.com",
-//       "https://handscollection.com",
-//       "handscollection.com",
-//       "http://localhost:3000",],
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//     credentials: true,
-//   })
-// );
-// app.options("*", cors());
+
+app.use(
+  cors({
+    origin: [
+      "https://www.handscollection.com",
+      "https://handscollection.com",
+      "handscollection.com",
+      "http://localhost:3000",],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+app.options("*", cors());
 
 // Model to avoid "Schema hasn't been registered for model" error
 require("./models/category");
