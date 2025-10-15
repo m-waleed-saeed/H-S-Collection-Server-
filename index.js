@@ -22,11 +22,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: [
-      "https://www.handscollection.com",
-      "https://handscollection.com",
-      "handscollection.com",
-      "http://localhost:3000",],
+    origin: ["https://handscollection.com", "https://www.handscollection.com"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
