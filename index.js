@@ -39,10 +39,6 @@ app.use("/api/contacts", contactRoutes);
 app.use("/api/subscribers", subscriberRoutes);
 
 
-
-const { PORT } = process.env;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`.bgCyan);
-});
-
 connectDB();
+
+module.exports = app;
