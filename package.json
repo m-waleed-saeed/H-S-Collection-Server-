@@ -26,6 +26,7 @@
     "mongoose": "^8.18.2",
     "multer": "^2.0.2",
     "nodemon": "^3.1.10",
+    "serverless-http": "^4.0.0",
     "xss-clean": "^0.1.4"
   }
 }

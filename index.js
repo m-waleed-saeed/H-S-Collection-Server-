@@ -17,26 +17,16 @@ const subscriberRoutes = require('./routes/subscriber')
 
 
 const app = express();
-
-const allowedOrigins = [
-  "https://www.handscollection.com",
-  "http://localhost:8000", // for local dev
-];
+app.use(express.json());
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: ["https://handscollection.com", "https://www.handscollection.com"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
-app.use(express.json());
 
 // Model to avoid "Schema hasn't been registered for model" error
 require("./models/category");
@@ -55,5 +45,5 @@ app.use("/api/subscribers", subscriberRoutes);
 
 
 connectDB();
-
-module.exports = app;
+const serverless = require("serverless-http");
+module.exports = serverless(app);
