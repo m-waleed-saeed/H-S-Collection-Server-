@@ -1,14 +1,18 @@
-const { createBanner, deleteBanner ,getAllBanner,  getRandomBanner } = require('../controllers/banner')
-const express = require('express')
-const router = express.Router()
+const express = require('express');
+const router = express.Router();
+const { createBanner, deleteBanner, getAllBanner, getRandomBanner } = require('../controllers/banner');
+const { verifyUser, verifyAdmin } = require('../middleware/auth');
 
-// Create Banner 
-router.post('/', createBanner)
-// Get All Banner 
-router.get('/', getAllBanner)
-// Delete Banner 
-router.delete('/:id', deleteBanner)
-// Get Random Banner 
-router.get('/random',getRandomBanner)
+// Create Banner (Admin only)
+router.post('/', verifyUser, verifyAdmin, createBanner);
 
-module.exports = router
+// Get All Banner (Admin only)
+router.get('/', verifyUser, verifyAdmin, getAllBanner);
+
+// Delete Banner (Admin only)
+router.delete('/:id', verifyUser, verifyAdmin, deleteBanner);
+
+// Get Random Banner (Public)
+router.get('/random', getRandomBanner);
+
+module.exports = router;

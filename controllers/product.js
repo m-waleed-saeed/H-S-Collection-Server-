@@ -1,25 +1,37 @@
 const Product = require("../models/product");
 
+// ADD PRODUCT
 const addProduct = async (req, res) => {
   try {
-    const { title, description, category, fabric, sizes, colors, stitchedPrice, unstitchedPrice, stitchType, stock, images, sizeChart } = req.body;
+    const {
+      title, description, category, fabric, sizes, colors,
+      stitchedPrice, unstitchedPrice, originalStitchedPrice, originalUnstitchedPrice,
+      stitchType, images, sizeChart, unstitchedQuantity
+    } = req.body;
 
-    if (!title || !stitchedPrice || !unstitchedPrice || !stock)
+    // Validate required fields
+    if (!title || !stitchedPrice || !unstitchedPrice || !originalStitchedPrice || !originalUnstitchedPrice)
       return res.status(400).json({ success: false, message: "Missing required fields" });
+
+    // Validate sizes
+    if (!Array.isArray(sizes) || sizes.some(s => !s.size || typeof s.quantity !== "number"))
+      return res.status(400).json({ success: false, message: "Sizes must be array of {size, quantity}" });
 
     const payload = {
       title: title.trim(),
       description: description || "",
       category: category || null,
       fabric: fabric || "",
-      sizes: Array.isArray(sizes) ? sizes : [],
+      sizes,
       colors: Array.isArray(colors) ? colors : [],
       stitchedPrice: Number(stitchedPrice),
       unstitchedPrice: Number(unstitchedPrice),
+      originalStitchedPrice: Number(originalStitchedPrice),
+      originalUnstitchedPrice: Number(originalUnstitchedPrice),
+      unstitchedQuantity: Number(unstitchedQuantity) || 0,
       stitchType: stitchType || "Stitched",
-      stock: Number(stock),
       images: Array.isArray(images) ? images : [],
-      sizeChart: sizeChart || { shirt: [], trouser: [] }
+      sizeChart: sizeChart || { shirt: [], trouser: [] },
     };
 
     const newProduct = await Product.create(payload);
@@ -31,26 +43,32 @@ const addProduct = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("addProduct error:", error);
+    console.error("Add Product error:", error);
     return res.status(500).json({ success: false, error: error.message || "Something went wrong" });
   }
 };
 
-
-// Get All Products
+// GET ALL PRODUCTS
 const getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find().populate("category").lean();
-    res.status(200).json({ success: true, products });
+    const page = Math.max(1, parseInt(req.query.page || "1", 10));
+    const limit = Math.min(100, parseInt(req.query.limit || "10", 10));
+    const skip = (page - 1) * limit;
+
+    const products = await Product.find().populate("category").skip(skip).limit(limit).lean();
+
+    const total = await Product.countDocuments();
+
+    res.status(200).json({ success: true, data: products, total, page, limit, });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message || "Something went wrong" });
+    res.status(500).json({ success: false, error: error.message || "Something went wrong", });
   }
 };
 
-// Get Single Product by ID
+// GET SINGLE PRODUCT BY ID
 const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).populate("category").lean();
     if (!product) return res.status(404).json({ success: false, message: "Product not found" });
     res.status(200).json({ success: true, product });
   } catch (error) {
@@ -58,13 +76,13 @@ const getProductById = async (req, res) => {
   }
 };
 
-// Update Product
+// UPDATE PRODUCT (with sizes)
 const updateProduct = async (req, res) => {
   try {
     const updatePayload = {
       ...req.body,
-      sizes: Array.isArray(req.body.sizes) ? req.body.sizes : req.body.sizes,
-      colors: Array.isArray(req.body.colors) ? req.body.colors : req.body.colors,
+      sizes: Array.isArray(req.body.sizes) ? req.body.sizes : undefined,
+      colors: Array.isArray(req.body.colors) ? req.body.colors : undefined,
       sizeChart: req.body.sizeChart || undefined,
     };
 
@@ -84,7 +102,7 @@ const updateProduct = async (req, res) => {
   }
 };
 
-// Delete Product
+// DELETE PRODUCT
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -92,14 +110,6 @@ const deleteProduct = async (req, res) => {
 
     if (!product) {
       return res.status(404).json({ success: false, message: "Product not found" });
-    }
-
-    if (product.images && product.images.length > 0) {
-      for (const img of product.images) {
-        if (img.public_id) {
-          await cloudinary.uploader.destroy(img.public_id);
-        }
-      }
     }
 
     await Product.findByIdAndDelete(id);
@@ -110,8 +120,8 @@ const deleteProduct = async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to delete product" });
   }
 };
-// Add Rating & Review
 
+// ADD RATING
 const addRating = async (req, res) => {
   try {
     const { id } = req.params;

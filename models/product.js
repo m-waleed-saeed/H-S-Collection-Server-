@@ -29,17 +29,24 @@ const sizeChartSchema = new mongoose.Schema({
   trouser: { type: [trouserSizeSchema], default: [] }
 }, { _id: false });
 
+const sizeStockSchema = new mongoose.Schema({
+  size: { type: String, trim: true, required: true },
+  quantity: { type: Number, required: true, min: 0 },
+}, { _id: false });
+
 const productSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   description: { type: String, trim: true },
   category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
-  fabric: { type: String,trim: true  },
-  sizes: [{ type: String ,trim: true }],
-  colors: [{ type: String ,trim: true }],
+  fabric: { type: String, trim: true },
+  sizes: { type: [sizeStockSchema], default: [] }, 
+  unstitchedQuantity: { type: Number, required: true, min: 0 },
+  colors: [{ type: String, trim: true }],
   stitchedPrice: { type: Number, required: true },
   unstitchedPrice: { type: Number, required: true },
+  originalStitchedPrice: { type: Number, required: true },
+  originalUnstitchedPrice: { type: Number, required: true },
   stitchType: { type: String, enum: ["Stitched", "Unstitched"], default: "Stitched" },
-  stock: { type: Number, required: true },
   images: [
     {
       url: { type: String, required: true },
@@ -49,5 +56,11 @@ const productSchema = new mongoose.Schema({
   ratings: [ratingSchema],
   sizeChart: { type: sizeChartSchema, default: () => ({}) }
 }, { timestamps: true });
+
+productSchema.virtual('stock').get(function () {
+  const stitched = (this.sizes || []).reduce((a, s) => a + (s.quantity || 0), 0);
+  const unstitched = this.unstitchedQuantity || 0;
+  return stitched + unstitched;
+});
 
 module.exports = mongoose.model("Product", productSchema);

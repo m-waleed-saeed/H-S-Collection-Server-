@@ -1,14 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const { addCategory, getCategories, deleteCategory } = require("../controllers/category");
+const { verifyUser, verifyAdmin } = require("../middleware/auth");
 
-// POST /api/categories/add
-router.post("/add", addCategory);
+// Add Category (Admin only)
+router.post("/add", verifyUser, verifyAdmin, addCategory);
 
-// GET /api/categories
+// Get Categories (Public)
 router.get("/", getCategories);
 
-// DELETE /api/categories/:id
-router.delete("/:id", deleteCategory);
+// Delete Category (Admin only)
+router.delete("/:id", verifyUser, verifyAdmin, deleteCategory);
 
 module.exports = router;

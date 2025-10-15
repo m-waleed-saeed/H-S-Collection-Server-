@@ -4,44 +4,49 @@ const jwt = require('jsonwebtoken');
 const dotenv = require("dotenv");
 dotenv.config();
 
-const { JWT_SECRET } = process.env;
+const { JWT_SECRET, JWT_EXPIRES_IN = '30d', BCRYPT_SALT_ROUNDS = '10' } = process.env;
 
 const register = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
     try {
+        if (!firstName || !email || !password) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ message: 'User already exists', success: false });
+            return res.status(400).json({ success: false, message: 'User already exists' });
         }
-        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const saltRounds = parseInt(BCRYPT_SALT_ROUNDS, 10) || 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         const newUser = await User.create({ firstName, lastName, email, password: hashedPassword });
-
-        const { password: _, ...userWithoutPassword } = newUser._doc;
-
-        return res.status(201).json({ message: 'User registered successfully', user: userWithoutPassword, success: true });
+        const userToReturn = await User.findById(newUser._id).select('-password');
+        return res.status(201).json({ success: true, message: 'User registered successfully', user: userToReturn });
     } catch (error) {
-        return res.status(500).json({ message: 'Something went wrong', success: false, error: error.message });
+        return res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
 };
 
 const login = async (req, res) => {
     const { email, password } = req.body;
     try {
-        const user = await User.findOne({ email });
+        if (!email || !password) return res.status(400).json({ success: false, message: 'Missing credentials' });
+
+        const user = await User.findOne({ email }).select('+password');
         if (!user) {
-            return res.status(400).json({ message: 'User not found', success: false });
+            return res.status(400).json({ success: false, message: 'Invalid email or password' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid email or password', success: false });
+            return res.status(400).json({ success: false, message: 'Invalid email or password' });
         }
-        const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
 
-        const { password: _, ...userWithoutPassword } = user._doc;
+        const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+        const userToReturn = await User.findById(user._id).select('-password');
 
-        return res.status(200).json({ message: 'Login successful', user: userWithoutPassword, token, success: true });
+        return res.status(200).json({ success: true, message: 'Login successful', token, user: userToReturn });
     } catch (error) {
         return res.status(500).json({ message: 'Something went wrong', success: false, error: error.message });
     }

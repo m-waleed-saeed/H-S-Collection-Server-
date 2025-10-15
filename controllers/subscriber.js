@@ -21,11 +21,16 @@ const addSubscriber = async (req, res) => {
 
 const getSubscribers = async (req, res) => {
   try {
-    const subscribers = await Subscriber.find().sort({ createdAt: -1 });
-    res.json(subscribers);
+    const page = Math.max(1, parseInt(req.query.page || "1", 10));
+    const limit = Math.min(100, parseInt(req.query.limit || "10", 10));
+    const skip = (page - 1) * limit;
+
+    const subscribers = await Subscriber.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const total = await Subscriber.countDocuments();
+
+    res.status(200).json({ success: true, data: subscribers, total, page, limit, });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ success: false, message: "Server error", error: error.message, });
   }
 };
-
 module.exports = { addSubscriber, getSubscribers };

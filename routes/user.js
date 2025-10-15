@@ -1,15 +1,15 @@
-const express = require('express')
-const router = express.Router()
+const express = require('express');
+const router = express.Router();
+const { getAllUsers, getOneUser, deleteUser } = require('../controllers/user');
+const { verifyUser, verifyAdmin } = require('../middleware/auth');
 
-const { getAllUsers, getOneUser, deleteUser } = require('../controllers/user')
+// Get All Users (Admin only)
+router.get('/', verifyUser, verifyAdmin, getAllUsers);
 
-//Get All Users
-router.get('/',getAllUsers)
+// Get One User (Admin or self)
+router.get('/find/:id', verifyUser, getOneUser);
 
-// Get One User
-router.get('/find/:id',getOneUser)
-
-// Delete User
-router.delete('/:id',deleteUser)
+// Delete User (Admin only)
+router.delete('/:id', verifyUser, verifyAdmin, deleteUser);
 
 module.exports = router;
