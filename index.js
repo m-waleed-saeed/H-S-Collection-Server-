@@ -1,19 +1,20 @@
-// const express = require('express');
-// const dotenv = require('dotenv');
-// dotenv.config({ quiet: true });
-// const cors = require('cors');
-// const bodyParser = require('body-parser');
-// const colors = require('colors');
-// const connectDB = require('./config/db');
-// const authRoutes = require('./routes/auth');
-// const userRoutes = require('./routes/user');
-// const bannerRoutes = require('./routes/banner')
-// const productRoutes = require('./routes/product');
-// const orderRoutes = require('./routes/order');
-// const contactRoutes = require("./routes/contact");
-// const categoryRoutes = require("./routes/category");
-// const uploadRoute = require("./routes/cloudinary");
-// const subscriberRoutes = require('./routes/subscriber')
+const express = require('express');
+const dotenv = require('dotenv');
+dotenv.config({ quiet: true });
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const colors = require('colors');
+const connectDB = require('./config/db');
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
+const bannerRoutes = require('./routes/banner')
+const productRoutes = require('./routes/product');
+const orderRoutes = require('./routes/order');
+const contactRoutes = require("./routes/contact");
+const categoryRoutes = require("./routes/category");
+const uploadRoute = require("./routes/cloudinary");
+const subscriberRoutes = require('./routes/subscriber')
+const connectDB = require('./config/db');
 
 
 // const app = express();
@@ -48,14 +49,12 @@
 //   console.log(`Server is running on PORT ${PORT}`.bgCyan)
 // })
 
-// connectDB();
 
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const colors = require('colors');
 const mongoose = require('mongoose');
-const connectDB = require('./config/db');
 
 // Load environment variables
 dotenv.config({ quiet: true });
@@ -101,12 +100,12 @@ app.use('/api/subscribers', subscriberRoutes);
 app.get("/api/db-status", (req, res) => {
   const state = mongoose.connection.readyState;
   const status =
-    state === 1
-      ? { status: "connected ✅", dbName: mongoose.connection.name }
-      : state === 2
-      ? { status: "connecting ⏳" }
-      : { status: "disconnected ❌" };
-
+  state === 1
+  ? { status: "connected ✅", dbName: mongoose.connection.name }
+  : state === 2
+  ? { status: "connecting ⏳" }
+  : { status: "disconnected ❌" };
+  
   res.json(status);
 });
 
@@ -125,3 +124,4 @@ const startServer = async () => {
 };
 
 startServer();
+connectDB();
