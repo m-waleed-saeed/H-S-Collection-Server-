@@ -21,7 +21,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: ["https://handscollection.com", "https://www.handscollection.com"],
+    origin: ["https://handscollection.com", "https://www.handscollection.com",'http://localhost:5173'],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -43,7 +43,9 @@ app.use('/api/orders', orderRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/subscribers", subscriberRoutes);
 
+const { PORT } = process.env
+app.listen(PORT, () => {
+  console.log(`Server is running on PORT ${PORT}`.bgCyan)
+})
 
 connectDB();
-const serverless = require("serverless-http");
-module.exports = serverless(app);
