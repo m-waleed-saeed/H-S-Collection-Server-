@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const stream = require("stream");
-const cloudinary = require("../config/cloudinary");
+const { cloudinary } = require("../config/cloudinary"); // ✅ FIXED
 const { verifyUser, verifyAdmin } = require("../middleware/auth");
 
 const storage = multer.memoryStorage();

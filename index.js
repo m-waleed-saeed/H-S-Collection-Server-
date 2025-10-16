@@ -37,19 +37,6 @@ app.use("/api/contacts", contactRoutes);
 app.use("/api/subscribers", subscriberRoutes);
 
 
-// ✅ Database status endpoint
-app.get("/api/db-status", (req, res) => {
-  const state = mongoose.connection.readyState;
-  const status =
-    state === 1
-      ? { status: "connected ✅", dbName: mongoose.connection.name }
-      : state === 2
-        ? { status: "connecting ⏳" }
-        : { status: "disconnected ❌" };
-
-  res.json(status);
-});
-
 // ✅ Connect DB first, then start server
 const startServer = async () => {
   try {
