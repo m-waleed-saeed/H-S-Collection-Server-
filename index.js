@@ -1,6 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
-dotenv.config();
+dotenv.config({ quiet: true });
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const colors = require('colors');
