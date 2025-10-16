@@ -51,11 +51,11 @@ const addProduct = async (req, res) => {
 // GET ALL PRODUCTS
 const getAllProducts = async (req, res) => {
   try {
-    // const page = Math.max(1, parseInt(req.query.page || "1", 10));
-    // const limit = Math.min(100, parseInt(req.query.limit || "10", 10));
-    // const skip = (page - 1) * limit;
+    const page = Math.max(1, parseInt(req.query.page || "1", 10));
+    const limit = Math.min(100, parseInt(req.query.limit || "10", 10));
+    const skip = (page - 1) * limit;
 
-    const products = await Product.find().populate("category").lean();
+    const products = await Product.find().populate("category").skip(skip).limit(limit).lean();
 
     const total = await Product.countDocuments();
 
