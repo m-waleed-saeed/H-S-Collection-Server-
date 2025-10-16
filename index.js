@@ -12,19 +12,17 @@ const orderRoutes = require('./routes/order');
 const contactRoutes = require("./routes/contact");
 const categoryRoutes = require("./routes/category");
 const uploadRoute = require("./routes/cloudinary");
-const subscriberRoutes = require('./routes/subscriber')
-const connectDB = require('./config/db');
+const subscriberRoutes = require('./routes/subscriber');
 
 
 const app = express();
 
-app.use(express.json());
-
 app.use(cors({ origin: ["https://handscollection.com", "https://www.handscollection.com", 'http://localhost:5173'], methods: ["GET", "POST", "PUT", "DELETE"], credentials: true, }));
 
+app.use(express.json());
 
-// Model to avoid "Schema hasn't been registered for model" error
 require("./models/category");
+
 
 //All Routes
 app.use('/api/auth', authRoutes);
