@@ -8,7 +8,6 @@ const createOrder = async (req, res) => {
   try {
     const { products, type, _id } = req.body;
 
-    // 🟢 If abandoned order already exists and we’re confirming it
     if (_id && type === "confirmed") {
       const updatedOrder = await Order.findByIdAndUpdate(
         _id,
@@ -22,7 +21,6 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // 🟡 Otherwise handle new (abandoned or confirmed) order creation
     for (const item of products) {
       const prod = await Product.findById(item.product).session(session);
       if (!prod) throw new Error("Product not found");
@@ -62,8 +60,6 @@ const createOrder = async (req, res) => {
     });
   } catch (error) {
     await session.abortTransaction();
-    console.error("Error creating order:", error); // 👈 Add this line
-
     session.endSession();
     res.status(500).json({
       message: error.message || "Failed to save order",
@@ -72,7 +68,6 @@ const createOrder = async (req, res) => {
   }
 };
 
-// ✅ controllers/orderController.js
 const getAllOrders = async (req, res) => {
   try {
     const page = Math.max(1, parseInt(req.query.page || "1", 10));
@@ -123,7 +118,6 @@ const getOrderById = async (req, res) => {
     if (!order)
       return res.status(404).json({ success: false, message: "Order not found" });
 
-    // enrich each order product with product size info
     const formattedProducts = order.products.map((p) => {
       let matchedSize = null;
       if (p.size && p.product?.sizes) {
@@ -133,7 +127,7 @@ const getOrderById = async (req, res) => {
       return {
         ...p.toObject(),
         product: p.product,
-        sizeDetails: matchedSize || null, // size info from product (if any)
+        sizeDetails: matchedSize || null,
       };
     });
 

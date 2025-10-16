@@ -1,4 +1,5 @@
 const Product = require("../models/product");
+const { deleteFileFromCloudinary } = require('../config/cloudinary');
 
 // ADD PRODUCT
 const addProduct = async (req, res) => {
@@ -109,15 +110,22 @@ const deleteProduct = async (req, res) => {
     const product = await Product.findById(id);
 
     if (!product) {
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res.status(404).json({ success: false, message: 'Product not found' });    }
+
+    if (product.images && Array.isArray(product.images)) {
+      for (const img of product.images) {
+        if (img.public_id) {
+          await deleteFileFromCloudinary(img.public_id);
+        }
+      }
     }
 
     await Product.findByIdAndDelete(id);
 
-    res.json({ success: true, message: "Product and images deleted successfully" });
+    res.json({ success: true, message: 'Product and images deleted successfully' });
   } catch (error) {
-    console.error("deleteProduct error:", error);
-    res.status(500).json({ success: false, message: "Failed to delete product" });
+    console.error('deleteProduct error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete product' });
   }
 };
 

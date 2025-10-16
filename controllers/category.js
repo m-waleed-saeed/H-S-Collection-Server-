@@ -2,14 +2,13 @@ const Category = require("../models/category");
 
 const addCategory = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name} = req.body;
     if (!name) return res.status(400).json({ success: false, message: "Name is required" });
 
-    // ensure unique name (mongoose unique constraint will also help)
     const already = await Category.findOne({ name: name.trim() });
     if (already) return res.status(409).json({ success: false, message: "Category already exists" });
 
-    const category = new Category({ name: name.trim(), description: description || "" });
+    const category = new Category({ name: name.trim() });
     await category.save();
     return res.status(201).json({ success: true, message: "Category created", category });
   } catch (error) {
