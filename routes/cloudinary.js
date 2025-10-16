@@ -35,7 +35,7 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-router.post("/upload", upload.single("image"), async (req, res) => {
+router.post("/", upload.single("image"), async (req, res) => {
   try {
     const bufferStream = new stream.PassThrough();
     bufferStream.end(req.file.buffer);
