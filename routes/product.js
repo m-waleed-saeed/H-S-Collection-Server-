@@ -20,7 +20,7 @@ router.get("/", getAllProducts);
 router.get("/:id", getProductById);
 
 // Update product (Admin only)
-router.put("/:id", verifyUser, verifyAdmin, updateProduct);
+router.put("/:id", updateProduct);
 
 // Delete product (Admin only)
 router.delete("/:id", verifyUser, verifyAdmin, deleteProduct);
