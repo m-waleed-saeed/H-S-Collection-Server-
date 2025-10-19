@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createBanner, deleteBanner, getAllBanner, getRandomBanner } = require('../controllers/banner');
+const { createBanner, deleteBanner, getAllBanner, getRandomBanner, getTwoRandomBanners } = require('../controllers/banner');
 const { verifyUser, verifyAdmin } = require('../middleware/auth');
 
 // Create Banner (Admin only)
@@ -14,5 +14,9 @@ router.delete('/:id', verifyUser, verifyAdmin, deleteBanner);
 
 // Get Random Banner (Public)
 router.get('/random', getRandomBanner);
+
+// Get Two Random Banner (Public)
+router.get("/random-two", getTwoRandomBanners);
+
 
 module.exports = router;

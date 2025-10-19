@@ -42,7 +42,7 @@ const orderSchema = new mongoose.Schema({
 
 orderSchema.pre("save", function (next) {
   if (!this.orderNumber) {
-    const random = Math.floor(1000 + Math.random() * 9000);
+    const random = Math.floor(1000 + Math.random() * 900000);
     const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     this.orderNumber = `ORD-${date}-${random}`;
   }

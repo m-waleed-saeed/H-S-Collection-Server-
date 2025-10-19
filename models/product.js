@@ -31,7 +31,7 @@ const sizeChartSchema = new mongoose.Schema({
 
 const sizeStockSchema = new mongoose.Schema({
   size: { type: String, trim: true, required: true },
-  quantity: { type: Number, required: true, min: 0 },
+  quantity: { type: Number, required: true},
 }, { _id: false });
 
 const productSchema = new mongoose.Schema({
