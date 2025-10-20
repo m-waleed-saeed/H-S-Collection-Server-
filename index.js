@@ -17,7 +17,7 @@ const serverless = require("serverless-http");
 
 const app = express();
 
-// ✅ CORS setup
+
 app.use(
   cors({
     origin: [
