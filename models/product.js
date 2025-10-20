@@ -40,7 +40,7 @@ const productSchema = new mongoose.Schema({
   category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
   fabric: { type: String, trim: true },
   sizes: { type: [sizeStockSchema], default: [] },
-  unstitchedQuantity: { type: Number, required: true, min: 0 },
+  unstitchedQuantity: { type: Number },
   colors: [{ type: String, trim: true }],
   stitchedPrice: { type: Number, required: true },
   unstitchedPrice: { type: Number },
