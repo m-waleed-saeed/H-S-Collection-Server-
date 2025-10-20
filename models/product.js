@@ -31,7 +31,7 @@ const sizeChartSchema = new mongoose.Schema({
 
 const sizeStockSchema = new mongoose.Schema({
   size: { type: String, trim: true, required: true },
-  quantity: { type: Number, required: true},
+  quantity: { type: Number, required: true },
 }, { _id: false });
 
 const productSchema = new mongoose.Schema({
@@ -39,13 +39,13 @@ const productSchema = new mongoose.Schema({
   description: { type: String, trim: true },
   category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
   fabric: { type: String, trim: true },
-  sizes: { type: [sizeStockSchema], default: [] }, 
+  sizes: { type: [sizeStockSchema], default: [] },
   unstitchedQuantity: { type: Number, required: true, min: 0 },
   colors: [{ type: String, trim: true }],
   stitchedPrice: { type: Number, required: true },
-  unstitchedPrice: { type: Number, required: true },
-  originalStitchedPrice: { type: Number, required: true },
-  originalUnstitchedPrice: { type: Number, required: true },
+  unstitchedPrice: { type: Number },
+  originalStitchedPrice: { type: Number },
+  originalUnstitchedPrice: { type: Number },
   stitchType: { type: String, enum: ["Stitched", "Unstitched"], default: "Stitched" },
   images: [
     {
