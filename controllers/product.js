@@ -10,7 +10,6 @@ const addProduct = async (req, res) => {
       stitchType, images, sizeChart, unstitchedQuantity
     } = req.body;
 
-    // Validate required fields
     if (!title || !stitchedPrice)
       return res.status(400).json({ success: false, message: "Missing required fields" });
 
