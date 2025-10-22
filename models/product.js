@@ -40,12 +40,12 @@ const productSchema = new mongoose.Schema({
   category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
   fabric: { type: String, trim: true },
   sizes: { type: [sizeStockSchema], default: [] },
-  unstitchedQuantity: { type: Number },
+  unstitchedQuantity: { type: Number, default: 0 },
   colors: [{ type: String, trim: true }],
   stitchedPrice: { type: Number, required: true },
-  unstitchedPrice: { type: Number },
-  originalStitchedPrice: { type: Number },
-  originalUnstitchedPrice: { type: Number },
+  unstitchedPrice: { type: Number, default: 0 },
+  originalStitchedPrice: { type: Number, default: 0 },
+  originalUnstitchedPrice: { type: Number, default: 0 },
   stitchType: { type: String, enum: ["Stitched", "Unstitched"], default: "Stitched" },
   images: [
     {
@@ -54,7 +54,7 @@ const productSchema = new mongoose.Schema({
     }
   ],
   ratings: [ratingSchema],
-  sizeChart: { type: sizeChartSchema, default: () => ({}) }
+  sizeChart: { type: sizeChartSchema, default: () => ({ shirt: [], trouser: [] }) }
 }, { timestamps: true });
 
 productSchema.virtual('stock').get(function () {

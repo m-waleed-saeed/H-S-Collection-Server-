@@ -1,53 +1,6 @@
 const Product = require("../models/product");
 const { deleteFileFromCloudinary } = require('../config/cloudinary');
 
-// ADD PRODUCT
-const addProduct = async (req, res) => {
-  try {
-    const {
-      title, description, category, fabric, sizes, colors,
-      stitchedPrice, unstitchedPrice, originalStitchedPrice, originalUnstitchedPrice,
-      stitchType, images, sizeChart, unstitchedQuantity
-    } = req.body;
-
-    if (!title || !stitchedPrice)
-      return res.status(400).json({ success: false, message: "Missing required fields" });
-
-    // Validate sizes
-    if (!Array.isArray(sizes) || sizes.some(s => !s.size || typeof s.quantity !== "number"))
-      return res.status(400).json({ success: false, message: "Sizes must be array of {size, quantity}" });
-
-    const payload = {
-      title: title.trim(),
-      description: description || "",
-      category: category || null,
-      fabric: fabric || "",
-      sizes,
-      colors: Array.isArray(colors) ? colors : [],
-      stitchedPrice: Number(stitchedPrice),
-      unstitchedPrice: Number(unstitchedPrice),
-      originalStitchedPrice: Number(originalStitchedPrice),
-      originalUnstitchedPrice: Number(originalUnstitchedPrice),
-      unstitchedQuantity: Number(unstitchedQuantity) || 0,
-      stitchType: stitchType || "Stitched",
-      images: Array.isArray(images) ? images : [],
-      sizeChart: sizeChart || { shirt: [], trouser: [] },
-    };
-
-    const newProduct = await Product.create(payload);
-
-    return res.status(201).json({
-      success: true,
-      message: "Product successfully added",
-      product: newProduct
-    });
-
-  } catch (error) {
-    console.error("Add Product error:", error);
-    return res.status(500).json({ success: false, error: error.message || "Something went wrong" });
-  }
-};
-
 // GET ALL PRODUCTS
 const getAllProducts = async (req, res) => {
   try {
@@ -165,4 +118,4 @@ const addRating = async (req, res) => {
   }
 };
 
-module.exports = { addProduct, getAllProducts, getProductById, updateProduct, deleteProduct, addRating };
+module.exports = { getAllProducts, getProductById, updateProduct, deleteProduct, addRating };

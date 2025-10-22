@@ -1,17 +1,15 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-dotenv.config();
-const colors = require('colors');
+const mongoose = require("mongoose")
 
-const { MONGODB_USER, MONGODB_PASSWORD } = process.env;
+const { MONGODB_USER, MONGODB_PASSWORD, MONGODB_NAME } = process.env
 
-const connectDB = async () => {
-    try {
-        await mongoose.connect(`mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@cluster0.3kttw4m.mongodb.net/`)
-        console.log('MongoDB connected successfully'.bgGreen);
-    } catch (error) {
-        console.error(`Error connecting to MongoDB: ${error.message}`.bgRed);
-    }
+const connectDB = () => {
+    mongoose.connect(`mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@cluster0.3kttw4m.mongodb.net/`, { dbName: MONGODB_NAME })
+        .then(() => {
+            console.log("MongoDB connected")
+        })
+        .catch(error => {
+            console.error("MongoDB error", error)
+        })
 }
 
-module.exports = connectDB;
+module.exports = { connectDB }
