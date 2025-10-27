@@ -3,7 +3,7 @@ const router = express.Router();
 const Product = require("../models/product")
 const multer = require("multer")
 const { cloudinary } = require("../config/cloudinary")
-const { verifyToken} = require("../middleware/auth");
+const { verifyToken } = require("../middleware/auth");
 
 const storage = multer.memoryStorage()
 const upload = multer({ storage })
@@ -56,7 +56,7 @@ router.post(`/add`, verifyToken, upload.array("files"), async (req, res) => {
 })
 
 // Get all products (Public)
-router.get("/", async (req, res) => {
+router.get("/all", async (req, res) => {
   try {
     const page = parseInt(req.query.pageNo) || 1;
     const limit = parseInt(req.query.perPage) || 10;

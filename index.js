@@ -13,6 +13,7 @@ const order = require("./routes/order");
 const contact = require("./routes/contact");
 const category = require("./routes/category");
 const upload = require("./routes/cloudinary");
+const public = require("./routes/public")
 const subscriber = require("./routes/subscriber");
 
 const { APP_URL, APP_URL_1, APP_URL_2, PORT = 8000 } = process.env
@@ -37,6 +38,7 @@ app.use("/products", product);
 app.use("/upload", upload);
 app.use("/orders", order);
 app.use("/contacts", contact);
+app.use("/public", public)
 app.use("/subscribers", subscriber);
 
 app.listen(PORT, () => {
