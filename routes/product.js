@@ -3,8 +3,7 @@ const router = express.Router();
 const Product = require("../models/product")
 const multer = require("multer")
 const { cloudinary } = require("../config/cloudinary")
-const { getAllProducts, getProductById, updateProduct, deleteProduct, addRating, } = require("../controllers/product");
-const { verifyUser, verifyAdmin } = require("../middleware/auth");
+const { verifyToken} = require("../middleware/auth");
 
 const storage = multer.memoryStorage()
 const upload = multer({ storage })
@@ -27,7 +26,7 @@ const uploadToCloudinary = (file) => {
 };
 
 
-router.post(`/add`, upload.array("files"), async (req, res) => {
+router.post(`/add`, verifyToken, upload.array("files"), async (req, res) => {
   try {
 
     let formData = req.body;
@@ -37,8 +36,7 @@ router.post(`/add`, upload.array("files"), async (req, res) => {
 
     sizes = JSON.parse(sizes)
     sizeChart = JSON.parse(sizeChart)
-    console.log('sizes', sizes)
-    // Validate sizes
+
     // if (!Array.isArray(formData.sizes) || formData.sizes.some(s => !s.size || typeof s.quantity !== "number"))
     //   return res.status(400).json({ success: false, message: "Sizes must be array of {size, quantity}" });
 
@@ -48,6 +46,8 @@ router.post(`/add`, upload.array("files"), async (req, res) => {
 
     const newProduct = await Product.create(newData);
 
+    newProduct.save();
+
     return res.status(201).json({ success: true, message: "Product successfully added", product: newProduct });
   } catch (error) {
     console.error("Add Product error:", error);
@@ -56,18 +56,119 @@ router.post(`/add`, upload.array("files"), async (req, res) => {
 })
 
 // Get all products (Public)
-router.get("/", getAllProducts);
+router.get("/", async (req, res) => {
+  try {
+    const page = parseInt(req.query.pageNo) || 1;
+    const limit = parseInt(req.query.perPage) || 10;
+    const skip = (page - 1) * limit;
+
+    const [products, total] = await Promise.all([Product.find().populate("category", "name").skip(skip).limit(limit).lean(), Product.countDocuments(),]);
+    res.status(200).json({ success: true, data: products, total, page, totalPages: Math.ceil(total / limit), });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message || "Something went wrong", });
+  }
+});
 
 // Get product by ID (Public)
-router.get("/:id", getProductById);
+router.get("/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id).populate("category").lean();
+    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+    res.status(200).json({ success: true, product });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message || "Something went wrong" });
+  }
+});
 
 // Update product (Admin only)
-router.put("/:id", updateProduct);
+router.put("/:id", async (req, res) => {
+  try {
+    const updatePayload = {
+      ...req.body,
+      sizes: Array.isArray(req.body.sizes) ? req.body.sizes : undefined,
+      colors: Array.isArray(req.body.colors) ? req.body.colors : undefined,
+      sizeChart: req.body.sizeChart || undefined,
+    };
+
+    Object.keys(updatePayload).forEach(k => updatePayload[k] === undefined && delete updatePayload[k]);
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      updatePayload,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProduct) return res.status(404).json({ success: false, message: "Product not found" });
+    return res.status(200).json({ success: true, message: "Product updated successfully", product: updatedProduct });
+  } catch (error) {
+    console.error("updateProduct error:", error);
+    return res.status(500).json({ success: false, error: error.message || "Something went wrong" });
+  }
+});
 
 // Delete product (Admin only)
-router.delete("/:id", verifyUser, verifyAdmin, deleteProduct);
+router.delete("/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    if (product.images && Array.isArray(product.images)) {
+      for (const img of product.images) {
+        if (img.public_id) {
+          await deleteFileFromCloudinary(img.public_id);
+        }
+      }
+    }
+
+    await Product.findByIdAndDelete(id);
+
+    res.json({ success: true, message: 'Product and images deleted successfully' });
+  } catch (error) {
+    console.error('deleteProduct error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete product' });
+  }
+});
 
 // Rate product (User only)
-router.post("/rating/:id", addRating);
+router.post("/rating/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { postedBy, email, rating, review } = req.body;
+
+    if (!postedBy || !email || !rating) {
+      return res.status(400).json({ success: false, message: "postedBy, email and rating are required." });
+    }
+
+    const numericRating = Number(rating);
+    if (Number.isNaN(numericRating) || numericRating < 1 || numericRating > 5) {
+      return res.status(400).json({ success: false, message: "Rating must be a number between 1 and 5." });
+    }
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    const alreadyReviewed = product.ratings.some(r => r.email.toLowerCase() === email.toLowerCase());
+    if (alreadyReviewed) {
+      return res.status(409).json({ success: false, message: "You have already added a review for this product." });
+    }
+
+    product.ratings.push({ postedBy, email, rating: numericRating, review: review || "", createdAt: new Date() });
+
+    await product.save();
+
+    const updatedProduct = await Product.findById(id).populate("category").lean();
+
+    return res.status(201).json({ success: true, message: "Rating added successfully", product: updatedProduct });
+  } catch (error) {
+    console.error("addRating error:", error);
+    return res.status(500).json({ success: false, error: error.message || "Something went wrong" });
+  }
+});
 
 module.exports = router;

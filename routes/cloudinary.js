@@ -3,14 +3,14 @@ const router = express.Router();
 const multer = require("multer");
 const stream = require("stream");
 const { cloudinary } = require("../config/cloudinary");
-const { verifyUser, verifyAdmin } = require("../middleware/auth");
+const { verifyToken} = require("../middleware/auth");
 
 const storage = multer.memoryStorage({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 const upload = multer({ storage });
 
-router.post("/", verifyUser, verifyAdmin, upload.single("file"), async (req, res) => {
+router.post("/", verifyToken, upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file received" });
 

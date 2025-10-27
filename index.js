@@ -28,10 +28,6 @@ app.use(cors({
 app.use(morgan("dev"))
 app.use(bodyParser.json())
 
-app.get("/", (req, res) => {
-  res.send("Server is running")
-})
-
 // ✅ All routes
 app.use("/auth", auth);
 app.use("/users", user);
