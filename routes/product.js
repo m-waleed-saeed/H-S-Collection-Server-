@@ -37,9 +37,6 @@ router.post(`/add`, verifyToken, upload.array("files"), async (req, res) => {
     sizes = JSON.parse(sizes)
     sizeChart = JSON.parse(sizeChart)
 
-    // if (!Array.isArray(formData.sizes) || formData.sizes.some(s => !s.size || typeof s.quantity !== "number"))
-    //   return res.status(400).json({ success: false, message: "Sizes must be array of {size, quantity}" });
-
     const uploadedFiles = await Promise.all(req.files.map(uploadToCloudinary));
 
     const newData = { ...formData, images: uploadedFiles, sizes, sizeChart }
@@ -54,6 +51,37 @@ router.post(`/add`, verifyToken, upload.array("files"), async (req, res) => {
     return res.status(500).json({ success: false, error: error.message || "Something went wrong" });
   }
 })
+
+router.patch("/update/:id", verifyToken, upload.array("files"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const formData = req.body;
+
+    const sizes = JSON.parse(formData.sizes || "[]");
+    const sizeChart = JSON.parse(formData.sizeChart || "{}");
+
+    const product = await Product.findById(id);
+    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+
+    let images = product.images || [];
+    if (req.files?.length) {
+      await Promise.all(images.map(img => img.public_id && cloudinary.uploader.destroy(img.public_id)));
+      images = await Promise.all(req.files.map(uploadToCloudinary));
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { ...formData, sizes, sizeChart, images },
+      { new: true }
+    );
+
+    res.status(200).json({ success: true, message: "Product updated", product: updatedProduct });
+  } catch (err) {
+    console.error("Update Product error:", err);
+    res.status(500).json({ success: false, message: err.message || "Something went wrong" });
+  }
+});
+
 
 // Get all products (Public)
 router.get("/all", async (req, res) => {
