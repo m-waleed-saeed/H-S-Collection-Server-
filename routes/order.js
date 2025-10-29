@@ -117,6 +117,42 @@ router.post("/abandoned", async (req, res) => {
     }
 });
 
+// Order Place
+
+router.post("/order-place", async (req, res) => {
+  try {
+    const { products, ...orderData } = req.body;
+    if (!products?.length) return res.status(400).json({ message: "No products provided", isError: true });
+
+    await Promise.all(
+      products.map(async ({ product, quantity, size, stitchType, customSize }) => {
+        const prod = await Product.findById(product);
+        if (!prod) throw new Error(`Product not found: ${product}`);
+
+        if (stitchType === "Stitched" && size) {
+          const sizeObj = prod.sizes.find((s) => s.size === size);
+          if (!sizeObj) throw new Error(`Size '${size}' not found for '${prod.title}'`);
+          if (sizeObj.quantity < quantity) throw new Error(`Insufficient stock for size '${size}'`);
+          sizeObj.quantity -= quantity;
+        } else if ((stitchType === "Stitched" && customSize) || stitchType === "Unstitched") {
+          if (prod.unstitchedQuantity < quantity) throw new Error(`Insufficient unstitched stock for '${prod.title}'`);
+          prod.unstitchedQuantity -= quantity;
+        }
+        await prod.save();
+      })
+    );
+
+    const order = await new Order({ ...orderData, products }).save();
+    // req.io?.emit("order:new", order);
+
+    res.status(201).json({ message: "Order placed successfully", isError: false, order });
+  } catch (error) {
+    console.error("Order Error:", error.message);
+    res.status(500).json({ message: error.message || "Error placing order", isError: true });
+  }
+});
+
+
 // Confirm Order
 router.put("/:id/confirm", async (req, res) => {
     const session = await Product.startSession();

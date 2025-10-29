@@ -21,7 +21,7 @@ const orderProductSchema = new mongoose.Schema({
 }, { _id: false });
 
 const orderSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: false },
+  user: { type: String, required: false },
   orderNumber: { type: String, unique: true, trim: true },
   products: [orderProductSchema],
   shippingAddress: {

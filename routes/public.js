@@ -16,9 +16,6 @@ router.get("/website-content", async (req, res) => {
 
         const [products, banners, categories] = await Promise.all(queries);
 
-        console.log('products', products)
-        console.log('banners', banners)
-
         res.status(200).json({ message: "Data fetched successfully", isError: false, products, banners, categories });
 
     } catch (error) {
