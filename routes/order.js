@@ -97,116 +97,35 @@ router.get("/", verifyToken, async (req, res) => {
     }
 });
 
-// Abandoned Order
-router.post("/abandoned", async (req, res) => {
-    try {
-        const body = { ...req.body, type: "abandoned" };
-        if (body._id) {
-            const updated = await Order.findByIdAndUpdate(body._id, body, { new: true, runValidators: true });
-            if (!updated) {
-                const created = await Order.create(body);
-                return res.status(201).json({ success: true, order: created });
-            }
-            return res.status(200).json({ success: true, order: updated });
-        } else {
-            const created = await Order.create(body);
-            return res.status(201).json({ success: true, order: created });
-        }
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message || "Failed to save abandoned order" });
-    }
-});
-
 // Order Place
-
 router.post("/order-place", async (req, res) => {
-  try {
-    const { products, ...orderData } = req.body;
-    if (!products?.length) return res.status(400).json({ message: "No products provided", isError: true });
-
-    await Promise.all(
-      products.map(async ({ product, quantity, size, stitchType, customSize }) => {
-        const prod = await Product.findById(product);
-        if (!prod) throw new Error(`Product not found: ${product}`);
-
-        if (stitchType === "Stitched" && size) {
-          const sizeObj = prod.sizes.find((s) => s.size === size);
-          if (!sizeObj) throw new Error(`Size '${size}' not found for '${prod.title}'`);
-          if (sizeObj.quantity < quantity) throw new Error(`Insufficient stock for size '${size}'`);
-          sizeObj.quantity -= quantity;
-        } else if ((stitchType === "Stitched" && customSize) || stitchType === "Unstitched") {
-          if (prod.unstitchedQuantity < quantity) throw new Error(`Insufficient unstitched stock for '${prod.title}'`);
-          prod.unstitchedQuantity -= quantity;
-        }
-        await prod.save();
-      })
-    );
-
-    const order = await new Order({ ...orderData, products }).save();
-    // req.io?.emit("order:new", order);
-
-    res.status(201).json({ message: "Order placed successfully", isError: false, order });
-  } catch (error) {
-    console.error("Order Error:", error.message);
-    res.status(500).json({ message: error.message || "Error placing order", isError: true });
-  }
-});
-
-
-// Confirm Order
-router.put("/:id/confirm", async (req, res) => {
-    const session = await Product.startSession();
     try {
-        session.startTransaction();
+        const { products, ...orderData } = req.body;
+        if (!products?.length) return res.status(400).json({ message: "No products provided", isError: true });
 
-        const orderId = req.params.id;
-        const order = await Order.findById(orderId).session(session);
-        if (!order) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(404).json({ success: false, message: "Order not found" });
-        }
+        await Promise.all(
+            products.map(async ({ product, quantity, size, stitchType, customSize }) => {
+                const prod = await Product.findById(product);
+                if (!prod) throw new Error(`Product not found: ${product}`);
 
-        if (order.type === "confirmed") {
-            await session.commitTransaction();
-            session.endSession();
-            return res.status(200).json({ success: true, message: "Order already confirmed", order });
-        }
-
-        for (const item of order.products) {
-            const prod = await Product.findById(item.product).session(session);
-            if (!prod) throw new Error(`Product not found(${item.product})`);
-
-            if (item.stitchType === "Stitched" && item.customSize) {
-                if (prod.unstitchedQuantity < item.quantity) {
-                    throw new Error(`Not enough unstitched stock for custom size in ${prod.title}`);
+                if (stitchType === "Stitched" && size) {
+                    const sizeObj = prod.sizes.find((s) => s.size === size);
+                    if (!sizeObj) throw new Error(`Size '${size}' not found for '${prod.title}'`);
+                    if (sizeObj.quantity < quantity) throw new Error(`Insufficient stock for size '${size}'`);
+                    sizeObj.quantity -= quantity;
+                } else if ((stitchType === "Stitched" && customSize) || stitchType === "Unstitched") {
+                    if (prod.unstitchedQuantity < quantity) throw new Error(`Insufficient unstitched stock for '${prod.title}'`);
+                    prod.unstitchedQuantity -= quantity;
                 }
-                prod.unstitchedQuantity -= item.quantity;
-            } else if (item.stitchType === "Stitched" && item.size) {
-                const sizeObj = prod.sizes.find((s) => s.size === item.size);
-                if (!sizeObj) throw new Error(`Size ${item.size} not available for product ${prod.title}`);
-                if (sizeObj.quantity < item.quantity) {
-                    throw new Error(`Not enough stock for size ${item.size} in ${prod.title}`);
-                }
-                sizeObj.quantity -= item.quantity;
-            } else if (item.stitchType === "Unstitched") {
-                if (prod.unstitchedQuantity < item.quantity) {
-                    throw new Error(`Not enough unstitched stock for ${prod.title}`);
-                }
-                prod.unstitchedQuantity -= item.quantity;
-            }
-            await prod.save({ session });
-        }
+                await prod.save();
+            })
+        );
 
-        order.type = "confirmed";
-        const saved = await order.save({ session });
-
-        await session.commitTransaction();
-        session.endSession();
+        const order = await new Order({ ...orderData, products }).save();
 
         await sendEmail({
             to: process.env.ADMIN_EMAIL,
-            subject: `🛍️ New Order Received - ${saved.orderNumber || saved._id}`,
+            subject: `🛍️ New Order Received - ${order.orderNumber || order._id}`,
             html: `
     <!DOCTYPE html>
     <html lang="en">
@@ -343,14 +262,14 @@ router.put("/:id/confirm", async (req, res) => {
         <div class="content">
             <div class="order-card">
                 <div class="order-header">
-                    <div class="order-id">Order #${saved.orderNumber || saved._id}</div>
-                    <div class="order-type">${saved.type}</div>
+                    <div class="order-id">Order #${order.orderNumber || order._id}</div>
+                    <div class="order-type">${order.type}</div>
                 </div>
                 
                 <div class="customer-info">
                     <div class="info-group">
                         <div class="info-label">Total Products</div>
-                        <div class="info-value">${saved.products.length} item${saved.products.length !== 1 ? 's' : ''}</div>
+                        <div class="info-value">${order.products.length} item${order.products.length !== 1 ? 's' : ''}</div>
                     </div>
                 </div>
                 
@@ -371,42 +290,31 @@ router.put("/:id/confirm", async (req, res) => {
 `,
         });
 
-        res.status(200).json({ success: true, message: "Order confirmed successfully", order: saved });
+        res.status(201).json({ message: "Order placed successfully", isError: false, order });
     } catch (error) {
-        try {
-            await session.abortTransaction();
-        } catch (e) {
-            console.error("ORDER-CONTROLLER-ERR:", error.stack || error);
-            try { await session.abortTransaction(); } catch (e) { }
-            session.endSession();
-            res.status(500).json({ message: error.message || "Failed to save order", success: false, });
-        }
-        session.endSession();
-        res.status(500).json({ success: false, message: error.message || "Failed to confirm order" });
+        console.error("Order Error:", error.message);
+        res.status(500).json({ message: error.message || "Error placing order", isError: true });
     }
 });
 
 // Get my Orders
-router.get('/my-orders', async (req, res) => {
+router.get("/my-orders", async (req, res) => {
     try {
-        let { ids, uid } = req.query;
+        const { uid, guestId } = req.query;
+        if (!uid || !guestId) return res.status(400).json({ success: false, message: "User or guest ID required" });
 
-        let query;
+        const query =
+            uid && uid !== "null" && uid !== "undefined"
+                ? { user: new mongoose.Types.ObjectId(uid), status: "pending" }
+                : { user: guestId, status: "pending" };
 
-        if (ids !== "null" && ids !== "undefind" && ids?.length > 0) { query = { $in: { _id: ids } } }
+        const orders = await Order.find(query).sort({ createdAt: -1 });
 
-        if (uid !== "null" && uid !== "undefind") { query = { user: uid } }
-
-        const orders = await Order.find(query)
-            .populate('user', 'name email')
-            .populate('products.product', 'title images sizes stitchedPrice unstitchedPrice')
-            .sort({ createdAt: -1 });
-
-        res.status(200).json({ success: true, orders });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Failed to fetch user orders', error: error.message });
+        res.json({ success: true, message: orders.length ? "Orders fetched successfully" : "No orders found", orders, });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Failed to fetch orders", error: err.message });
     }
-})
+});
 
 // Update Status
 router.put("/:id/status", verifyToken, async (req, res) => {
