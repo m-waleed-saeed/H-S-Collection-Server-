@@ -30,7 +30,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.delete("/:id", verifyToken, async (req, res) => {
+router.delete("/:id", async (req, res) => {
     try {
         const deleted = await Category.findByIdAndDelete(req.params.id);
         if (!deleted) return res.status(404).json({ success: false, message: "Category not found" });

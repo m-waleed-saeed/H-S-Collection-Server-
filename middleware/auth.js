@@ -4,8 +4,6 @@ const dotenv = require('dotenv');
 dotenv.config();
 const { JWT_SECRET } = process.env;
 
-console.log('JWT_SECRET', JWT_SECRET)
-
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization
     console.log('first', authHeader)

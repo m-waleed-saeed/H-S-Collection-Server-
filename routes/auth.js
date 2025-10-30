@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const dotenv = require("dotenv");
 dotenv.config();
 
-const { JWT_SECRET, JWT_EXPIRES_IN = '30d', BCRYPT_SALT_ROUNDS = '10' } = process.env;
+const { JWT_SECRET, JWT_EXPIRES_IN, BCRYPT_SALT_ROUNDS } = process.env;
 
 // Register
 router.post('/register', async (req, res) => {
