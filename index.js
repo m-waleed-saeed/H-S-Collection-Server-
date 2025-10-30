@@ -22,8 +22,9 @@ connectDB();
 
 const app = express()
 app.use(cors({
-  origin: [APP_URL, APP_URL_1, APP_URL_2,"https://www.handscollection.com"],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: [APP_URL, APP_URL_1, APP_URL_2, "https://www.handscollection.com"],
+  methods: ["GET", "POST", 'PUT', "PATCH", "OPTIONS", "DELETE"],
+  allowedHeaders: ['Content-Type', 'Authorization',]
 }))
 
 app.use(morgan("dev"))
@@ -42,7 +43,7 @@ app.use("/public", public)
 app.use("/subscribers", subscriber);
 
 app.get("/", async (req, res) => {
-res.send("Server is Running")
+  res.send("Server is Running")
 })
 
 app.listen(PORT, () => {
