@@ -59,26 +59,49 @@ router.patch("/update/:id", verifyToken, upload.array("files"), async (req, res)
 
     const sizes = JSON.parse(formData.sizes || "[]");
     const sizeChart = JSON.parse(formData.sizeChart || "{}");
+    const imagesURL = JSON.parse(formData.imagesURL || "[]"); 
 
     const product = await Product.findById(id);
     if (!product) return res.status(404).json({ success: false, message: "Product not found" });
 
-    let images = product.images || [];
+    // --- Existing images in DB
+    let existingImages = product.images || [];
+
+    // --- STEP 1: Delete images that are NOT in the new imagesURL array
+    const imagesToDelete = existingImages.filter(
+      (img) => !imagesURL.some((url) => url.url === img.url)
+    );
+
+    await Promise.all(
+      imagesToDelete.map((img) =>
+        img.public_id ? cloudinary.uploader.destroy(img.public_id) : null
+      )
+    );
+
+    existingImages = existingImages.filter((img) =>
+      imagesURL.some((url) => url.url === img.url)
+    );
+
+    // --- STEP 2: Upload any new files (if present)
+    let uploadedImages = [];
     if (req.files?.length) {
-      await Promise.all(images.map(img => img.public_id && cloudinary.uploader.destroy(img.public_id)));
-      images = await Promise.all(req.files.map(uploadToCloudinary));
+      uploadedImages = await Promise.all(req.files.map(uploadToCloudinary));
     }
 
+    // --- STEP 3: Combine old + new images
+    const finalImages = [...existingImages, ...uploadedImages];
+
+    // --- STEP 4: Update product
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
-      { ...formData, sizes, sizeChart, images },
+      { ...formData, sizes, sizeChart, images: finalImages },
       { new: true }
     );
 
     res.status(200).json({ success: true, message: "Product updated", product: updatedProduct });
   } catch (err) {
     console.error("Update Product error:", err);
-    res.status(500).json({ success: false, message: err.message || "Something went wrong" });
+    res.status(500).json({ success: false, message: err.message || "Something went wrong", isError: true });
   }
 });
 
@@ -98,11 +121,11 @@ router.get("/all", async (req, res) => {
 });
 
 // Get product by ID (Public)
-router.get("/:id", async (req, res) => {
+router.get("/single-with-id/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).populate("category").lean();
     if (!product) return res.status(404).json({ success: false, message: "Product not found" });
-    res.status(200).json({ success: true, product });
+    res.status(200).json({ success: true, prod: product });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message || "Something went wrong" });
   }
