@@ -67,7 +67,6 @@ router.get("/all", verifyToken, async (req, res) => {
 
         const query = {};
 
-        console.log("status", status)
         if (status && status !== "null" && status !== "undefined") { query.status = status; }
 
         if (type) { query.type = type; }
@@ -77,6 +76,7 @@ router.get("/all", verifyToken, async (req, res) => {
         }
 
         const orders = await Order.find(query).populate("user", "name email").populate("products.product", "title images sizes price").skip(skip).limit(limit).sort({ createdAt: -1 });
+        // const orders = await Order.find(query).sort({ createdAt: -1 });
 
         const total = await Order.countDocuments(query);
 
