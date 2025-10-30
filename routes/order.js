@@ -300,13 +300,12 @@ router.post("/order-place", async (req, res) => {
 // Get my Orders
 router.get("/my-orders", async (req, res) => {
     try {
-        const { uid, guestId } = req.query;
-        if (!uid || !guestId) return res.status(400).json({ success: false, message: "User or guest ID required" });
+        const { guestId } = req.query;
+        if (!guestId) return res.status(400).json({ success: false, message: "User or guest ID required" });
 
         const query =
-            uid && uid !== "null" && uid !== "undefined"
-                ? { user: new mongoose.Types.ObjectId(uid), status: "pending" }
-                : { user: guestId, status: "pending" };
+            guestId && guestId !== "null" && guestId !== "undefined"
+                && { user: guestId, status: "pending" }
 
         const orders = await Order.find(query).sort({ createdAt: -1 });
 
