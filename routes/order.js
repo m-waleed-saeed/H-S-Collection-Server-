@@ -4,8 +4,8 @@ const Order = require("../models/order")
 const Product = require("../models/product");
 const sendEmail = require("../utils/email.js");
 const dotenv = require("dotenv");
-dotenv.config();
 const { verifyToken } = require("../middleware/auth");
+dotenv.config();
 
 // Create Order
 router.post("/", async (req, res) => {
@@ -57,24 +57,23 @@ router.post("/", async (req, res) => {
 });
 
 // Get All Orders
-router.get("/", verifyToken, async (req, res) => {
+router.get("/all", verifyToken, async (req, res) => {
     try {
-        const { status, search, type } = req.query;
+        const { orderNo, type, status } = req.query;
 
         const page = parseInt(req.query.pageNo) || 1;
         const limit = parseInt(req.query.perPage) || 10;
         const skip = (page - 1) * limit;
+
         const query = {};
 
-        if (status && status !== "all") { query.status = status; }
+        console.log("status", status)
+        if (status && status !== "null" && status !== "undefined") { query.status = status; }
 
         if (type) { query.type = type; }
 
-        if (search) {
-            query.$or = [
-                { orderNumber: { $regex: search, $options: "i" } },
-                { "shippingAddress.name": { $regex: search, $options: "i" } },
-            ];
+        if (orderNo && orderNo !== "null" && orderNo !== "undefined") {
+            query.orderNumber = { $regex: orderNo, $options: "i" };
         }
 
         const orders = await Order.find(query).populate("user", "name email").populate("products.product", "title images sizes price").skip(skip).limit(limit).sort({ createdAt: -1 });
@@ -91,7 +90,7 @@ router.get("/", verifyToken, async (req, res) => {
             customerEmail: order.user ? order.user.email : order.shippingAddress?.email,
         }));
 
-        res.status(200).json({ success: true, data: formattedOrders, total, page, limit, totalPending, totalDelievred, totalCancelled });
+        res.status(200).json({ success: true, formattedOrders, total, page, limit, totalPending, totalDelievred, totalCancelled });
     } catch (error) {
         res.status(500).json({ success: false, message: "Failed to fetch orders", error: error.message, });
     }
@@ -305,7 +304,7 @@ router.get("/my-orders", async (req, res) => {
 
         const query =
             guestId && guestId !== "null" && guestId !== "undefined"
-                && { user: guestId, status: "pending" }
+            && { user: guestId, status: "pending" }
 
         const orders = await Order.find(query).sort({ createdAt: -1 });
 
