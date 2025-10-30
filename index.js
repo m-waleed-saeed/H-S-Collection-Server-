@@ -41,6 +41,10 @@ app.use("/contacts", contact);
 app.use("/public", public)
 app.use("/subscribers", subscriber);
 
+app.get("/", async (req, res) => {
+res.send("Server is Running")
+})
+
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
 });
