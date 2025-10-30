@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Product = require("../models/product")
 const multer = require("multer")
-const { cloudinary } = require("../config/cloudinary")
+const { cloudinary, deleteFileFromCloudinary } = require("../config/cloudinary")
 const { verifyToken } = require("../middleware/auth");
 
 const storage = multer.memoryStorage()
@@ -59,7 +59,7 @@ router.patch("/update/:id", verifyToken, upload.array("files"), async (req, res)
 
     const sizes = JSON.parse(formData.sizes || "[]");
     const sizeChart = JSON.parse(formData.sizeChart || "{}");
-    const imagesURL = JSON.parse(formData.imagesURL || "[]"); 
+    const imagesURL = JSON.parse(formData.imagesURL || "[]");
 
     const product = await Product.findById(id);
     if (!product) return res.status(404).json({ success: false, message: "Product not found" });
@@ -163,20 +163,10 @@ router.delete("/:id", verifyToken, async (req, res) => {
     const { id } = req.params;
     const product = await Product.findById(id);
 
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
+    if (!product) { return res.status(404).json({ success: false, message: 'Product not found' }); }
 
-    if (product.images && Array.isArray(product.images)) {
-      for (const img of product.images) {
-        if (img.public_id) {
-          await deleteFileFromCloudinary(img.public_id);
-        }
-      }
-    }
-
+    if (product.images && Array.isArray(product.images)) { for (const img of product.images) { if (img.public_id) { await deleteFileFromCloudinary(img.public_id); } } }
     await Product.findByIdAndDelete(id);
-
     res.json({ success: true, message: 'Product and images deleted successfully' });
   } catch (error) {
     console.error('deleteProduct error:', error);
