@@ -316,7 +316,7 @@ router.get("/my-orders", async (req, res) => {
 });
 
 // Update Status
-router.put("/:id/status", verifyToken, async (req, res) => {
+router.put("/:id/status", async (req, res) => {
     try {
         const { status } = req.body;
 

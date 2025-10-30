@@ -12,7 +12,7 @@ const uploadToCloudinary = (file) => {
   return new Promise((resolve, reject) => {
 
     const uploadStream = cloudinary.uploader.upload_stream(
-      { folder: "allImages", resource_type: "image" },  // Set resource type dynamically
+      { folder: "allImages", resource_type: "image" },
       (error, result) => {
         if (error) return reject(error);
         resolve({
