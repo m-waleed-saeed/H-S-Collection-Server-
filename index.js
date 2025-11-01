@@ -31,7 +31,8 @@ app.use(express.urlencoded({ limit: "20mb", extended: true }));
 //   allowedHeaders: ['Content-Type', 'Authorization',],
 //   credentials: true,
 // }))
-app.use(cors())
+
+app.use(cors({ credentials: true }))
 app.use(morgan("dev"))
 app.use(express.json());
 app.use(bodyParser.json())
