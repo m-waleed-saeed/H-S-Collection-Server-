@@ -19,12 +19,14 @@ const subscriber = require("./routes/subscriber");
 const { APP_URL, APP_URL_1, APP_URL_2, PORT = 8000 } = process.env
 
 connectDB();
-// 🟢 Allow larger body size (e.g. 10 MB)
+
 const app = express()
+
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
+
 app.use(cors({
-  origin: [APP_URL, APP_URL_1, APP_URL_2, "https://handscollection.com"],
+  origin: ["https://www.handscollection.com", "http://localhost:5173"],
   methods: ["GET", "POST", 'PUT', "PATCH", "OPTIONS", "DELETE"],
   allowedHeaders: ['Content-Type', 'Authorization',],
   credentials: true,
