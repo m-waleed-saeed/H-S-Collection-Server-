@@ -75,7 +75,7 @@ router.get("/all", verifyToken, async (req, res) => {
             query.orderNumber = { $regex: orderNo, $options: "i" };
         }
 
-        const orders = await Order.find(query).populate("user", "name email").populate("products.product", "title images sizes price").skip(skip).limit(limit).sort({ createdAt: -1 });
+        const orders = await Order.find(query).populate("user", "name email").populate("products.product", "title images sizes price").skip(skip).limit(limit).sort({ createdAt: -1 }).lean();
         // const orders = await Order.find(query).sort({ createdAt: -1 });
 
         const total = await Order.countDocuments(query);

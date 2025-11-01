@@ -21,7 +21,7 @@ router.get("/website-content/products", async (req, res) => {
 router.get("/website-content/banners", async (req, res) => {
     try {
 
-        const banners = await Banners.find()
+        const banners = await Banners.find().lean()
 
         res.status(200).json({ message: "Data fetched successfully", isError: false, banners });
 
@@ -34,7 +34,7 @@ router.get("/website-content/banners", async (req, res) => {
 router.get("/website-content/categories", async (req, res) => {
     try {
 
-        const categories = await Categories.find()
+        const categories = await Categories.find().lean()
 
         res.status(200).json({ message: "Data fetched successfully", isError: false, categories });
 

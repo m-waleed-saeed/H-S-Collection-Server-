@@ -22,8 +22,8 @@ connectDB();
 
 const app = express()
 
-app.use(express.json({ limit: "20mb" }));
-app.use(express.urlencoded({ limit: "20mb", extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "60mb", extended: true }));
 
 app.use(cors({
   origin: ["https://www.handscollection.com", "http://localhost:5173"],
