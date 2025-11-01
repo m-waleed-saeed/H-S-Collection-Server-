@@ -23,11 +23,11 @@ connectDB();
 const app = express()
 
 app.use(cors({
-  origin: ["https://www.handscollection.com", "https://handscollection.com", "http://localhost:5173"],
-  methods: ["GET", "POST", 'PUT', "PATCH", "OPTIONS", "DELETE"],
-  allowedHeaders: ['Content-Type', 'Authorization',],
+  origin: ["https://handscollection.com", "https://www.handscollection.com", "http://localhost:5173"],
+  methods: ["GET", "POST", "PUT", "PATCH", "OPTIONS", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
-}))
+}));
 
 app.use(morgan("dev"))
 app.use(express.urlencoded({ extended: true }));
