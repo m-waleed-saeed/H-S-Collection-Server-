@@ -36,7 +36,6 @@ app.use(morgan("dev"))
 app.use(express.json());
 app.use(bodyParser.json())
 
-// ✅ All routes
 app.use("/auth", auth);
 app.use("/users", user);
 app.use("/banners", banner);
