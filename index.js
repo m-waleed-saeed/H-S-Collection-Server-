@@ -22,13 +22,14 @@ connectDB();
 
 const app = express()
 app.use(cors({
-  origin: [APP_URL, APP_URL_1, APP_URL_2],
+  origin: [APP_URL, APP_URL_1, APP_URL_2, "https://www.handscollection.com"],
   methods: ["GET", "POST", 'PUT', "PATCH", "OPTIONS", "DELETE"],
   allowedHeaders: ['Content-Type', 'Authorization',],
   credentials: true,
 }))
 
 app.use(morgan("dev"))
+app.use(express.json());
 app.use(bodyParser.json())
 
 // ✅ All routes
