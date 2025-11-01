@@ -5,18 +5,38 @@ const Categories = require("../models/category")
 
 const router = express.Router()
 
-router.get("/website-content", async (req, res) => {
+router.get("/website-content/products", async (req, res) => {
     try {
 
-        const queries = [
-            Products.find().populate("category", "name").lean(),
-            Banners.find(),
-            Categories.find(),
-        ];
+        const products = await Products.find().populate("category", "name").lean()
 
-        const [products, banners, categories] = await Promise.all(queries);
+        res.status(200).json({ message: "Data fetched successfully", isError: false, products });
 
-        res.status(200).json({ message: "Data fetched successfully", isError: false, products, banners, categories });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error", isError: true, error });
+    }
+});
+
+router.get("/website-content/banners", async (req, res) => {
+    try {
+
+        const banners = await Banners.find()
+
+        res.status(200).json({ message: "Data fetched successfully", isError: false, banners });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error", isError: true, error });
+    }
+});
+
+router.get("/website-content/categories", async (req, res) => {
+    try {
+
+        const categories = await Categories.find()
+
+        res.status(200).json({ message: "Data fetched successfully", isError: false, categories });
 
     } catch (error) {
         console.error(error);
