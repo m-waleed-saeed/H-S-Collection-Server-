@@ -57,6 +57,45 @@ router.post("/", async (req, res) => {
 });
 
 // Get All Orders
+// router.get("/all", verifyToken, async (req, res) => {
+//     try {
+//         const { orderNo, type, status } = req.query;
+
+//         const page = parseInt(req.query.pageNo) || 1;
+//         const limit = parseInt(req.query.perPage) || 10;
+//         const skip = (page - 1) * limit;
+
+//         const query = {};
+
+//         if (status && status !== "null" && status !== "undefined") { query.status = status; }
+
+//         if (type) { query.type = type; }
+
+//         if (orderNo && orderNo !== "null" && orderNo !== "undefined") {
+//             query.orderNumber = { $regex: orderNo, $options: "i" };
+//         }
+
+//         const orders = await Order.find(query).populate("user", "name email").populate("products.product", "title images sizes price").skip(skip).limit(limit).sort({ createdAt: -1 }).lean();
+//         // const orders = await Order.find(query).sort({ createdAt: -1 });
+
+//         const total = await Order.countDocuments(query);
+
+//         const totalPending = await Order.countDocuments({ status: "pending" })
+//         const totalDelievred = await Order.countDocuments({ status: "delivered" })
+//         const totalCancelled = await Order.countDocuments({ status: "cancelled" })
+
+//         const formattedOrders = orders.map((order) => ({
+//             ...order,
+//             customerName: order.user ? order.user.name : order.shippingAddress?.name,
+//             customerEmail: order.user ? order.user.email : order.shippingAddress?.email,
+//         }));
+
+//         res.status(200).json({ success: true, formattedOrders, total, page, limit, totalPending, totalDelievred, totalCancelled });
+//     } catch (error) {
+//         res.status(500).json({ success: false, message: "Failed to fetch orders", error: error.message, });
+//     }
+// });
+
 router.get("/all", verifyToken, async (req, res) => {
     try {
         const { orderNo, type, status } = req.query;
@@ -67,34 +106,54 @@ router.get("/all", verifyToken, async (req, res) => {
 
         const query = {};
 
-        if (status && status !== "null" && status !== "undefined") { query.status = status; }
-
-        if (type) { query.type = type; }
-
+        if (status && status !== "null" && status !== "undefined") query.status = status;
+        if (type) query.type = type;
         if (orderNo && orderNo !== "null" && orderNo !== "undefined") {
             query.orderNumber = { $regex: orderNo, $options: "i" };
         }
 
-        const orders = await Order.find(query).populate("user", "name email").populate("products.product", "title images sizes price").skip(skip).limit(limit).sort({ createdAt: -1 }).lean();
-        // const orders = await Order.find(query).sort({ createdAt: -1 });
-
-        const total = await Order.countDocuments(query);
-
-        const totalPending = await Order.countDocuments({ status: "pending" })
-        const totalDelievred = await Order.countDocuments({ status: "delivered" })
-        const totalCancelled = await Order.countDocuments({ status: "cancelled" })
+        const orders = await Order.find(query)
+            .populate("user", "name email")
+            .populate("products.product", "title images sizes price")
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 })
+            .lean();
+        // console.log('orders', orders)
+        const [total, totalPending, totalDelivered, totalCancelled] = await Promise.all([
+            Order.countDocuments(query),
+            Order.countDocuments({ status: "pending" }),
+            Order.countDocuments({ status: "delivered" }),
+            Order.countDocuments({ status: "cancelled" }),
+        ]);
 
         const formattedOrders = orders.map((order) => ({
-            ...order._doc,
-            customerName: order.user ? order.user.name : order.shippingAddress?.name,
-            customerEmail: order.user ? order.user.email : order.shippingAddress?.email,
+            ...order,
+            customerName: order.user?.name || order.shippingAddress?.name || "Unknown",
+            customerEmail: order.user?.email || order.shippingAddress?.email || "N/A",
         }));
+        // console.log('format', formattedOrders)
 
-        res.status(200).json({ success: true, formattedOrders, total, page, limit, totalPending, totalDelievred, totalCancelled });
+        res.status(200).json({
+            success: true,
+            orders: formattedOrders,
+            total,
+            page,
+            limit,
+            totalPending,
+            totalDelivered,
+            totalCancelled,
+        });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Failed to fetch orders", error: error.message, });
+        console.error("Order Fetch Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch orders",
+            error: error.message,
+        });
     }
 });
+
 
 // Order Place
 router.post("/order-place", async (req, res) => {
