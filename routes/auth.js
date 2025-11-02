@@ -40,7 +40,7 @@ router.post('/login', async (req, res) => {
     try {
         if (!email || !password) return res.status(400).json({ success: false, message: 'Missing credentials' });
 
-        const user = await User.findOne({ email }).select('+password');
+        const user = await User.findOne({ email });
 
         if (!user) {
             return res.status(400).json({ success: false, message: 'Invalid email or password' });
