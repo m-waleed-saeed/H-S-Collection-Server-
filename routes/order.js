@@ -112,19 +112,13 @@ router.get("/all", verifyToken, async (req, res) => {
             query.orderNumber = { $regex: orderNo, $options: "i" };
         }
 
-        const orders = await Order.find(query)
-            .populate("user", "name email")
-            .populate("products.product", "title images sizes price")
-            .skip(skip)
-            .limit(limit)
-            .sort({ createdAt: -1 })
-            .lean();
+        const orders = await Order.find(query).populate("user", "name email").populate("products.product", "title images sizes price").skip(skip).limit(limit).sort({ createdAt: -1 }).lean();
         // console.log('orders', orders)
         const [total, totalPending, totalDelivered, totalCancelled] = await Promise.all([
             Order.countDocuments(query),
-            Order.countDocuments({ status: "pending" }),
-            Order.countDocuments({ status: "delivered" }),
-            Order.countDocuments({ status: "cancelled" }),
+            Order.countDocuments({ status: "pending", type: "confirmed" }),
+            Order.countDocuments({ status: "delivered", type: "confirmed" }),
+            Order.countDocuments({ status: "cancelled", type: "confirmed" }),
         ]);
 
         const formattedOrders = orders.map((order) => ({
@@ -134,23 +128,10 @@ router.get("/all", verifyToken, async (req, res) => {
         }));
         // console.log('format', formattedOrders)
 
-        res.status(200).json({
-            success: true,
-            orders: formattedOrders,
-            total,
-            page,
-            limit,
-            totalPending,
-            totalDelivered,
-            totalCancelled,
-        });
+        res.status(200).json({ success: true, orders: formattedOrders, total, page, limit, totalPending, totalDelivered, totalCancelled, });
     } catch (error) {
         console.error("Order Fetch Error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch orders",
-            error: error.message,
-        });
+        res.status(500).json({ success: false, message: "Failed to fetch orders", error: error.message, });
     }
 });
 
