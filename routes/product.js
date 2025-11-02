@@ -88,7 +88,6 @@ router.patch("/update/:id", verifyToken, upload.array("files"), async (req, res)
       uploadedImages = await Promise.all(req.files.map(uploadToCloudinary));
     }
 
-    // --- STEP 3: Combine old + new images
     const finalImages = [...existingImages, ...uploadedImages];
 
     // --- STEP 4: Update product
