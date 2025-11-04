@@ -58,30 +58,11 @@ router.delete('/:id', verifyToken, async (req, res) => {
     }
 });
 
-// Get Random Banner (Public)
-router.get('/random', async (req, res) => {
-    const banners = await Banner.find();
-
-    if (!banners) {
-        res.status(400)
-        throw new Error('Banner were not fetched or something went wrong')
-    } else {
-        const randomIndex = Math.floor(Math.random() * banners.length);
-        const randomBanner = banners[randomIndex];
-        res.status(200).json(randomBanner);
-    }
-});
-
 // Get Two Random Banner (Public)
 router.get("/random-two", async (req, res) => {
     try {
         const banners = await Banner.find();
-
-        if (!banners || banners.length === 0) {
-            return res.status(404).json({ message: "No banners found" });
-        }
-
-        // Shuffle banners and take first 2
+        if (!banners || banners.length === 0) { return res.status(404).json({ message: "No banners found" }); }
         const shuffled = banners.sort(() => 0.5 - Math.random());
         const randomTwo = shuffled.slice(0, 2);
 
