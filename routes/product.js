@@ -211,4 +211,32 @@ router.post("/rating/:id", async (req, res) => {
   }
 });
 
+// router.get('/all-frontend', async (req, res) => {
+//   try {
+//     const { type, pageNo, perPage, category } = req.query;
+
+//     const numericPage = Number(pageNo);
+//     const numericLimit = Number(perPage);
+//     let productFilter = {};
+//     if (category && category !== "") { productFilter.category = category; }
+//     let query = Product.find(productFilter).populate("category", "name").sort({ createdAt: -1 });
+//     let total = 0;
+
+//     if (["shop", "category"].includes(type)) {
+//       total = await Product.countDocuments(productFilter);
+//       query = query.skip((numericPage - 1) * numericLimit).limit(numericLimit);
+//     }
+
+//     if (type === "home" || !type) { query = query.limit(numericLimit); }
+
+//     if (type === "category" && !category) { return res.status(400).json({ isError: true, message: "Category ID is required for 'category' type", }); }
+//     const products = await query.lean();
+
+//     res.status(200).json({ isError: false, message: "Products fetched successfully", products, total, currentPage: numericPage, limit: numericLimit, });
+//   } catch (error) {
+//     console.error("Error fetching products:", error);
+//     res.status(500).json({ isError: true, message: "Internal Server Error", error, });
+//   }
+// })
+
 module.exports = router;
